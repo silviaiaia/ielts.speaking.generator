@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "api/index.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/", "dest": "/index.html" },
+    { "src": "/index.html", "dest": "/index.html" },
+    { "src": "/script.js", "dest": "/script.js", "headers": { "Content-Type": "application/javascript" } },
+    { "src": "/api/generate_question", "dest": "/api/index.js" }
+  ]
+}
