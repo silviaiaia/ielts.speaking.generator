@@ -2,25 +2,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const partSelector = document.getElementById('part-selector');
     const generateButton = document.getElementById('generate-button');
     const questionContainer = document.getElementById('question');
-
+    
     generateButton.addEventListener('click', function() {
+        // 顯示載入中提示
+        questionContainer.innerHTML = '<p>載入中，請稍候...</p>';
+        
         const selectedPart = partSelector.value;
-
-        fetch('https://mhx5ycsndj.execute-api.us-east-1.amazonaws.com/default/generate_question', { // 將 YOUR_API_GATEWAY_URL 替換為你的實際 URL
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ part: selectedPart })
-})
-// ... 後續的 .then 和 .catch 部分保持不變
+        
+        // 替換為你的Vercel API端點
+        fetch('https://your-vercel-app.vercel.app/api/generate_question', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ part: selectedPart })
+        })
         .then(response => response.json())
         .then(data => {
             if (data.question) {
                 const lines = data.question.split('\n');
                 let formattedQuestion = '';
                 for (const line of lines) {
-                    if (line.startsWith('**')) {
+                    if (line.startsWith('**') && line.endsWith('**')) {
                         formattedQuestion += `<h3>${line.substring(2, line.length - 2)}</h3>`;
                     } else if (line.trim() !== '') {
                         formattedQuestion += `<p>${line}</p>`;
