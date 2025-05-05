@@ -1,33 +1,33 @@
-app.post('/api/generate_question', async (req, res) => {
-    try {
-        const { part } = req.body;
+const express = require('express');
+const cors = require('cors');
+require('dotenv').config();
 
-        if (!part || !['part1', 'part2', 'part3'].includes(part)) {
-            return res.status(400).json({ error: '無效的題型選擇' });
-        }
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-        // 根據選擇的部分生成適當的提示
-        let prompt = '';
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type']
+}));
 
-        if (part === 'part1') {
-            prompt = `生成一組雅思口說考試 Part 1 的問題。要求：...`;
-        } else if (part === 'part2') {
-            prompt = `生成一個雅思口說考試 Part 2 的 Cue Card 題目。要求：...`;
-        } else { // part3
-            prompt = `生成一組雅思口說考試 Part 3 的深入討論問題。要求：...`;
-        }
+app.use(express.json());
 
-        // 調用 Gemini API
-        const { GoogleGenerativeAI } = require('@google/generative-ai');
-        const googleAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = googleAI.getGenerativeModel({ model: "gemini-pro" });
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
-
-        res.status(200).json({ question: text });
-    } catch (error) {
-        console.error('Gemini API 錯誤:', error);
-        res.status(500).json({ error: '生成問題時出錯，請稍後再試' });
-    }
+// 健康檢查端點
+app.get('/api/health', (req, res) => {
+    res.status(200).json({ status: 'healthy' });
 });
+
+// 直接處理 generate_question 路由
+app.post('/api/generate_question', async (req, res) => {
+    // ... 你的生成問題邏輯
+});
+
+// 通配符路由 - 捕獲所有其他 API 請求
+app.all('/api/*', (req, res) => {
+    res.status(404).json({ error: '找不到此 API 端點', path: req.path });
+});
+
+// ... (其他程式碼)
+
+module.exports = app;
