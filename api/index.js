@@ -32,3 +32,4 @@ app.post('/api/generate_question', async (req, res) => {
         res.status(500).json({ error: '生成問題時出錯，請稍後再試' + (error.message ? ': ' + error.message : '') });
     }
 });
+module.exports = app;
