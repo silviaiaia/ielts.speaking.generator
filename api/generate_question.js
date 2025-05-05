@@ -1,107 +1,53 @@
-// api/generate_question.js
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+// 【api/generate_question.js】- 處理問題生成的主要邏輯
+const express = require('express');
+const router = express.Router();
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-// Vercel Edge Function 設置，使用Node.js v18 運行環境
-export const config = {
-  runtime: "edge",
-};
+// 初始化 Google AI
+const googleAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-export default async function handler(req) {
-  // 只接受POST請求
-  if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Method not allowed" }),
-      {
-        status: 405,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*", // 允許跨域請求
-        },
-      }
-    );
-  }
-
+router.post('/generate_question', async (req, res) => {
   try {
-    // 解析請求內容
-    const { part } = await req.json();
-
-    // 驗證必要參數
-    if (!part) {
-      return new Response(
-        JSON.stringify({ error: "Part parameter is required" }),
-        {
-          status: 400,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
-        }
-      );
-    }
-
-    // 使用環境變數中的API金鑰
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return new Response(
-        JSON.stringify({ error: "API key not configured" }),
-        {
-          status: 500,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
-        }
-      );
-    }
-
-    // 根據選擇的part構建提示詞
-    let prompt = "";
+    const { part } = req.body;
     
-    switch(part) {
-      case "part1":
-        prompt = "Generate an IELTS Speaking Part 1 question with 3-4 follow-up questions about a common topic like hobbies, work, hometown, etc. Format the response with '**Topic**' as heading followed by numbered questions.";
-        break;
-      case "part2":
-        prompt = "Generate an IELTS Speaking Part 2 cue card topic. Format the response with '**Cue Card**' as heading, followed by the topic, and include bullet points with 'Describe', 'Explain', 'Say' etc.";
-        break;
-      case "part3":
-        prompt = "Generate 4-5 IELTS Speaking Part 3 discussion questions related to a specific theme. Format the response with '**Discussion Topic**' as heading followed by numbered questions that require analysis and opinion.";
-        break;
-      default:
-        prompt = "Generate an IELTS Speaking question.";
+    if (!part || !['part1', 'part2', 'part3'].includes(part)) {
+      return res.status(400).json({ error: '無效的題型選擇' });
     }
-
-    // 初始化Gemini API
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-
-    // 發送請求到Gemini API
+    
+    // 根據選擇的部分生成適當的提示
+    let prompt = '';
+    
+    if (part === 'part1') {
+      prompt = `生成一組雅思口說考試 Part 1 的問題。要求：
+1. 主題要符合雅思常見話題，如：工作、學習、家鄉、興趣愛好等
+2. 生成5-7個相關問題
+3. 問題應從簡單到稍微複雜
+4. 輸出格式：以"**[主題名稱]**"為標題，然後列出問題`;
+    } else if (part === 'part2') {
+      prompt = `生成一個雅思口說考試 Part 2 的 Cue Card 題目。要求：
+1. 按照標準雅思 Part 2 格式，包含"Describe..."的主要提示
+2. 包含3-4個引導性子問題
+3. 題目要貼近真實考試，符合雅思常見話題
+4. 輸出格式：以"**Cue Card**"為標題，然後是完整的 Part 2 卡片內容`;
+    } else { // part3
+      prompt = `生成一組雅思口說考試 Part 3 的深入討論問題。要求：
+1. 假設該問題延續了一個 Part 2 的話題
+2. 生成5-7個更具挑戰性、需要批判性思考的問題
+3. 問題應探討社會趨勢、比較、個人意見或預測等
+4. 輸出格式：以"**深入討論：[相關主題]**"為標題，然後列出問題`;
+    }
+    
+    // 調用 Gemini API
+    const model = googleAI.getGenerativeModel({ model: "gemini-pro" });
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
-
-    // 返回結果
-    return new Response(
-      JSON.stringify({ question: text }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
-      }
-    );
+    
+    res.status(200).json({ question: text });
   } catch (error) {
-    console.error("API Error:", error);
-    return new Response(
-      JSON.stringify({ error: error.message || "Internal server error" }),
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
-      }
-    );
+    console.error('Gemini API 錯誤:', error);
+    res.status(500).json({ error: '生成問題時出錯，請稍後再試' });
   }
-}
+});
+
+module.exports = router;
