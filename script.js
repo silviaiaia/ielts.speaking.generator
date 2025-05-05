@@ -3,15 +3,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const generateButton = document.getElementById('generate-button');
     const questionContainer = document.getElementById('question');
     
+    // 將此處的 URL 更改為您的 Vercel 部署 URL
+    const API_URL = 'https://your-vercel-app-name.vercel.app/api/generate_question';
+    
     generateButton.addEventListener('click', function() {
         // 顯示載入中提示
-        questionContainer.innerHTML = '<p>載入中，請稍候...</p>';
+        questionContainer.innerHTML = '<p class="loading">載入中，請稍候...</p>';
         
         const selectedPart = partSelector.value;
         
-        // 使用相對路徑而不是絕對URL
-        // 這樣前端和後端在同一個域名下時就能正常通訊
-        fetch('/api/generate_question', {
+        fetch(API_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
