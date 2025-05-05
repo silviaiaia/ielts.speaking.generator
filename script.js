@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const questionContainer = document.getElementById('question');
     
     // 將此處的 URL 更改為您的 Vercel 部署 URL
-    const API_URL = 'https://your-vercel-app-name.vercel.app/api/generate_question';
+    const API_URL = 'https://ielts-speaking-generator.vercel.app/api/generate_question';
     
     generateButton.addEventListener('click', function() {
         // 顯示載入中提示
