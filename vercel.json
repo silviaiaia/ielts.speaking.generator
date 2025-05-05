@@ -5,8 +5,8 @@
   ],
   "routes": [
     { "src": "/", "dest": "/index.html" },
-    { "src": "/api/(.*)", "dest": "/api/index.js" },
-    { "src": "/(.*).js", "dest": "/$1.js", "headers": { "Content-Type": "application/javascript" } },
-    { "src": "/(.*)", "dest": "/index.html" }
+    { "src": "/index.html", "dest": "/index.html" },
+    { "src": "/script.js", "dest": "/script.js", "headers": { "Content-Type": "application/javascript" } },
+    { "src": "/api/(.*)", "dest": "/api/index.js" }
   ]
 }
