@@ -1,4 +1,3 @@
-// 【api/generate_question.js】- 處理問題生成的主要邏輯
 const express = require('express');
 const router = express.Router();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
