@@ -4,6 +4,6 @@
     { "src": "/", "dest": "/index.html" },
     { "src": "/index.html", "dest": "/index.html" },
     { "src": "/script.js", "dest": "/script.js", "headers": { "Content-Type": "application/javascript" } },
-    { "src": "/api/generate_question", "dest": "/api/index.js" }
+    { "src": "/api/generate_question", "dest": "/api/index.js", "methods": ["POST"] }
   ]
 }
