@@ -40,7 +40,7 @@ app.post('/api/generate_question', async (req, res) => {
 
         const { GoogleGenerativeAI } = require('@google/generative-ai');
         const googleAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = googleAI.getGenerativeModel({ model: "gemini-pro" });
+        const model = googleAI.getGenerativeModel({ model: "gemini-1.0-pro" });
         const result = await model.generateContent(prompt); // 這裡使用了 prompt 變數
         const response = await result.response;
         const text = response.text();
