@@ -1,3 +1,10 @@
+const express = require('express');
+const app = express();
+
+const cors = require('cors');
+require('dotenv').config();
+
+// ... 其他中間件和路由定義
 app.post('/api/generate_question', async (req, res) => {
     try {
         const { part } = req.body;
