@@ -1,4 +1,3 @@
-// 【vercel.json】- Vercel 配置文件
 {
   "version": 2,
   "builds": [
