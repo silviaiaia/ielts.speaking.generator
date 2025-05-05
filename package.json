@@ -1,0 +1,16 @@
+{
+  "name": "ielts-speaking-generator",
+  "version": "1.0.0",
+  "description": "雅思口說模擬題產生器",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel deploy --prod"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.1.3"
+  },
+  "devDependencies": {
+    "vercel": "^32.4.1"
+  }
+}
