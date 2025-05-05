@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     generateButton.addEventListener('click', function() {
         const selectedPart = partSelector.value;
 
-        fetch('https://mhx5ycsndj.execute-api.us-east-1.amazonaws.com/default/ielts-speaking-api/generate_question', { // 將 YOUR_API_GATEWAY_URL 替換為你的實際 URL
+        fetch('https://mhx5ycsndj.execute-api.us-east-1.amazonaws.com/default/generate_question', { // 將 YOUR_API_GATEWAY_URL 替換為你的實際 URL
     method: 'POST',
     headers: {
         'Content-Type': 'application/json'
