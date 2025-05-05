@@ -9,15 +9,22 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const selectedPart = partSelector.value;
         
-        // 替換為你的Vercel API端點
-        fetch('https://ielts-speaking-generator.vercel.app/api/generate_question', {
+        // 使用相對路徑而不是絕對URL
+        // 這樣前端和後端在同一個域名下時就能正常通訊
+        fetch('/api/generate_question', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ part: selectedPart })
         })
-        .then(response => response.json())
+        .then(response => {
+            // 添加錯誤檢查
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.question) {
                 const lines = data.question.split('\n');
@@ -38,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             console.error('請求錯誤:', error);
-            questionContainer.textContent = '與伺服器通訊發生錯誤。';
+            questionContainer.textContent = '與伺服器通訊發生錯誤：' + error.message;
         });
     });
 });
