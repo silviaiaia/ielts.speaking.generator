@@ -70,7 +70,7 @@ app.post('/api/generate_question', async (req, res) => {
 });
 
 // 引入題目生成路由 (作為備用)
-app.use('/api', generateQuestionRouter);
+// app.use('/api', generateQuestionRouter);
 
 // 通配符路由 - 捕獲所有其他 API 請求
 app.all('/api/*', (req, res) => {
