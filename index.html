@@ -1,36 +1,84 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>雅思口說模擬題產生器</title>
     <style>
         body {
-            font-family: sans-serif;
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        #controls {
+            background-color: #f5f7fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            flex-grow: 1;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
         }
         #question-container {
-            margin-top: 20px;
-            padding: 15px;
-            border: 1px solid #ccc;
+            background-color: #fff;
+            padding: 20px;
+            border: 1px solid #e1e1e1;
             border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            min-height: 200px;
+        }
+        h3 {
+            color: #3498db;
+            margin-top: 0;
+        }
+        p {
+            margin-bottom: 10px;
+        }
+        .loading {
+            text-align: center;
+            color: #7f8c8d;
+            font-style: italic;
         }
     </style>
 </head>
 <body>
     <h1>雅思口說模擬題產生器</h1>
-    <div>
+    <div id="controls">
         <label for="part-selector">選擇題型：</label>
         <select id="part-selector">
-            <option value="part1">Part 1</option>
-            <option value="part2">Part 2</option>
-            <option value="part3">Part 3</option>
+            <option value="part1">Part 1 (基本問題)</option>
+            <option value="part2">Part 2 (Cue Card)</option>
+            <option value="part3">Part 3 (深入討論)</option>
         </select>
         <button id="generate-button">生成題目</button>
     </div>
     <div id="question-container">
         <p id="question">請選擇題型並點擊生成按鈕。</p>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
