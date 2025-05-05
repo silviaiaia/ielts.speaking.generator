@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const questionContainer = document.getElementById('question');
     
     // 將此處的 URL 更改為您的 Vercel 部署 URL
+    // ⚠️ 確保使用完整 URL，包括 https://
     const API_URL = 'https://ielts-speaking-generator.vercel.app/api/generate_question';
     
     generateButton.addEventListener('click', function() {
@@ -11,6 +12,9 @@ document.addEventListener('DOMContentLoaded', function() {
         questionContainer.innerHTML = '<p class="loading">載入中，請稍候...</p>';
         
         const selectedPart = partSelector.value;
+        
+        console.log('發送請求到:', API_URL);
+        console.log('請求數據:', JSON.stringify({ part: selectedPart }));
         
         fetch(API_URL, {
             method: 'POST',
@@ -20,13 +24,18 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify({ part: selectedPart })
         })
         .then(response => {
+            console.log('收到回應狀態:', response.status);
             // 添加錯誤檢查
             if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
+                return response.text().then(text => {
+                    console.error('錯誤響應內容:', text);
+                    throw new Error(`HTTP error! Status: ${response.status}, Body: ${text}`);
+                });
             }
             return response.json();
         })
         .then(data => {
+            console.log('收到數據:', data);
             if (data.question) {
                 const lines = data.question.split('\n');
                 let formattedQuestion = '';
