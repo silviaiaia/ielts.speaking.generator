@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedPart = partSelector.value;
         
         // 替換為你的Vercel API端點
-        fetch('https://your-vercel-app.vercel.app/api/generate_question', {
+        fetch('https://ielts-speaking-generator.vercel.app/api/generate_question', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
