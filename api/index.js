@@ -31,11 +31,11 @@ app.post('/api/generate_question', async (req, res) => {
         let prompt = '';
 
         if (part === 'part1') {
-            prompt = `生成一組雅思口說考試 Part 1 的問題。要求：...`;
+            prompt = `隨機生成一組雅思口說考試 Part 1 的問題。要求：...`;
         } else if (part === 'part2') {
-            prompt = `生成一個雅思口說考試 Part 2 的 Cue Card 題目。要求：...`;
+            prompt = `隨機生成一個雅思口說考試 Part 2 的 Cue Card 題目。要求：...`;
         } else { // part3
-            prompt = `生成一組雅思口說考試 Part 3 的深入討論問題。要求：...`;
+            prompt = `隨機生成一組雅思口說考試 Part 3 的深入討論問題。要求：...`;
         }
 
         const { GoogleGenerativeAI } = require('@google/generative-ai');
