@@ -1,3 +1,3 @@
 https://ielts-speaking-generator.vercel.app/
 
-an Ielts test speaking questions generator
+an Ielts test speaking questions generator with Gemini
