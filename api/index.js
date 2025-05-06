@@ -31,11 +31,11 @@ app.post('/api/generate_question', async (req, res) => {
         let prompt = '';
 
         if (part === 'part1') {
-            prompt = `請隨機生成一個 IELTS Speaking Part 1 的問題。要求：...`;
+            prompt = `Generate a set of IELTS Speaking Part 1 questions. Include 1 main question and 2–3 follow-up questions. All in English. 要求：...`;
         } else if (part === 'part2') {
-            prompt = `請隨機生成一個 IELTS Speaking Part 2 題目，包括完整的題幹與子題提示。要求：...`;
+            prompt = `Generate one IELTS Speaking Part 2 task card with a topic and bullet point prompts. Then add 2–3 follow-up questions that an examiner might ask after the candidate's response. 要求：...`;
         } else { // part3
-            prompt = `請隨機生成一個 IELTS Speaking Part 3 的問題。要求：...`;
+            prompt = `Generate a set of IELTS Speaking Part 3 questions. Start with a main discussion question and add 2–3 related follow-up questions. All in English. 要求：...`;
         }
 
         const { GoogleGenerativeAI } = require('@google/generative-ai');
