@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>雅思口說模擬題產生器</title>
+    <title>IELTS Speaking Questions Generator</title>
     <style>
         body {
             font-family: Microsoft JhengHei, Times New Roman;
@@ -66,19 +66,20 @@
     </style>
 </head>
 <body>
-    <h1>雅思口說模擬題產生器</h1>
+    <h1>IELTS Speaking Questions Generator</h1>
     <div id="controls">
-        <label for="part-selector">選擇題型：</label>
+        <label for="part-selector">Select：</label>
         <select id="part-selector">
-            <option value="part1">Part 1 (基本問題)</option>
-            <option value="part2">Part 2 (Cue Card)</option>
-            <option value="part3">Part 3 (深入討論)</option>
+            <option value="part1">Part 1 (general questions)</option>
+            <option value="part2">Part 2 (cue card)</option>
+            <option value="part3">Part 3 (deep discussion)</option>
         </select>
-        <button id="generate-button">生成題目</button>
+        <button id="generate-button">Generate Questions</button>
     </div>
     <div id="question-container">
-        <p id="question">請選擇題型並點擊生成按鈕。</p>
+        <p id="question">Please select a part and click the "Generate Questions" buttom.</p>
     </div>
     <script src="script.js"></script>
 </body>
 </html>
+
