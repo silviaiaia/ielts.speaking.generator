@@ -1,13 +1,12 @@
 document.addEventListener('DOMContentLoaded', function() {
     const partSelector = document.getElementById('part-selector');
     const generateButton = document.getElementById('generate-button');
-    const questionContainer = document.getElementById('question-container'); // 修改了選擇器
+    const questionContainer = document.getElementById('question-container');
 
-    const API_URL = '/api/generate_question'; // 使用相對 URL
+    const API_URL = '/api/generate_question';
 
     generateButton.addEventListener('click', function() {
-        // 顯示載入中提示
-        questionContainer.innerHTML = '<p class="loading">載入中，請稍候...</p>';
+        questionContainer.innerHTML = '<p class="loading">Loading...</p>';
 
         const selectedPart = partSelector.value;
 
@@ -23,7 +22,6 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => {
             console.log('收到回應狀態:', response.status);
-            // 添加錯誤檢查
             if (!response.ok) {
                 return response.text().then(text => {
                     console.error('錯誤響應內容:', text);
@@ -44,11 +42,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         formattedQuestion += `<p>${line}</p>`;
                     }
                 }
-                questionContainer.innerHTML = formattedQuestion; // 使用 innerHTML 更新外層 div
+                questionContainer.innerHTML = formattedQuestion;
             } else if (data.error) {
                 questionContainer.textContent = `錯誤：${data.error}`;
             } else {
-                questionContainer.textContent = '無法生成題目，請稍後再試。';
+                questionContainer.textContent = 'OOPS! Cannot generate questions, please try again later.';
             }
         })
         .catch(error => {
@@ -57,3 +55,4 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
