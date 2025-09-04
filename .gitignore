@@ -1,11 +1,7 @@
-# 環境變數
 .env
 
-# 依賴項
 node_modules/
 
-# 系統文件
 .DS_Store
 
-# 日誌
 npm-debug.log
