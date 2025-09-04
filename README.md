@@ -1,7 +1,5 @@
 <img src="https://capsule-render.vercel.app/api?type=speech&color=FFECF5&height=200&section=header&text=IELTS&fontColor=FF79BC&fontSize=100&fontAlign=20&fontAlignY=40&desc=speaking%20generator&descSize=40&descAlign=60" />
 
-## IELTS Speaking Question Generator
-
 Welcome to the IELTS Speaking Question Generator! This tool helps you practice for the IELTS Speaking test anytime, anywhere, by instantly creating unique questions for Parts 1, 2, and 3.
 
 You don't need to download anything. Just click the link below to start your practice:
