@@ -126,7 +126,9 @@ app.post("/api/generate_question", async (req, res) => {
       );
       return res
         .status(502)
-        .json({ error: "The model returned malformed output. Please try again." });
+        .json({
+          error: "The model returned malformed output. Please try again.",
+        });
     }
 
     res.status(200).json({
@@ -148,7 +150,7 @@ app.post("/api/generate_question", async (req, res) => {
       const dailyQuota = /PerDay/i.test(error.message || "");
       return res.status(429).json({
         error: dailyQuota
-          ? "Today's free allowance is used up. It resets tomorrow."
+          ? "Today's free allowance is used up. Try tomorrow."
           : "Too many requests right now. Try again in about 30 seconds.",
       });
     }
