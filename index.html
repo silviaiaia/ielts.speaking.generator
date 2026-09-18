@@ -1,89 +1,293 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IELTS Speaking Questions Generator</title>
     <style>
-        body {
-            font-family: Microsoft JhengHei, Times New Roman;
-            line-height: 1.6;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
+        :root {
+            --accent: #3498db;
+            --accent-dark: #2980b9;
+            --ink: #2c3e50;
+            --muted: #7f8c8d;
+            --line: #e1e5ea;
+            --surface: #fff;
+            --page: #fafbfc;
         }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: "Segoe UI", "Microsoft JhengHei", system-ui, sans-serif;
+            line-height: 1.6;
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 24px 20px 48px;
+            background: var(--page);
+            color: var(--ink);
+        }
+
         h1 {
             text-align: center;
-            color: #2c3e50;
+            font-size: 1.75rem;
+            margin-bottom: 4px;
         }
+
+        .subtitle {
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin: 0 0 24px;
+        }
+
         #controls {
-            background-color: #f5f7fa;
-            padding: 15px;
-            border-radius: 5px;
+            background: #f5f7fa;
+            padding: 16px;
+            border-radius: 8px;
             margin-bottom: 20px;
             display: flex;
-            align-items: center;
-            gap: 10px;
+            flex-wrap: wrap;
+            gap: 12px;
         }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1 1 200px;
+        }
+
+        .field label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--muted);
+        }
+
         select {
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            flex-grow: 1;
+            padding: 9px 10px;
+            border-radius: 6px;
+            border: 1px solid #d5dbe1;
+            background: var(--surface);
+            font-size: 0.95rem;
+            color: var(--ink);
         }
+
         button {
-            background-color: #3498db;
-            color: white;
+            align-self: flex-end;
+            background: var(--accent);
+            color: #fff;
             border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: background 0.2s;
         }
-        button:hover {
-            background-color: #2980b9;
+
+        button:hover:not(:disabled) { background: var(--accent-dark); }
+
+        button:disabled {
+            background: #b8c4ce;
+            cursor: not-allowed;
         }
+
         #question-container {
-            background-color: #fff;
-            padding: 20px;
-            border: 1px solid #e1e1e1;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background: var(--surface);
+            padding: 24px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
             min-height: 200px;
         }
-        h3 {
-            color: #3498db;
-            margin-top: 0;
+
+        /* Result header */
+        .result-meta {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 10px;
+            padding-bottom: 12px;
+            margin-bottom: 18px;
+            border-bottom: 1px solid var(--line);
         }
-        p {
-            margin-bottom: 10px;
+
+        .badge {
+            background: var(--accent);
+            color: #fff;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            padding: 3px 9px;
+            border-radius: 999px;
         }
-        .loading {
+
+        .result-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .result-topic {
+            color: var(--muted);
+            font-size: 0.85rem;
+            margin-left: auto;
+        }
+
+        /* Question lists */
+        ol.questions {
+            margin: 0;
+            padding-left: 0;
+            list-style: none;
+            counter-reset: q;
+        }
+
+        ol.questions li {
+            counter-increment: q;
+            position: relative;
+            padding: 10px 0 10px 40px;
+            border-bottom: 1px solid #f0f2f5;
+        }
+
+        ol.questions li:last-child { border-bottom: none; }
+
+        ol.questions li::before {
+            content: counter(q);
+            position: absolute;
+            left: 0;
+            top: 11px;
+            width: 26px;
+            height: 26px;
+            line-height: 26px;
             text-align: center;
-            color: #7f8c8d;
-            font-style: italic;
+            background: #eaf4fb;
+            color: var(--accent-dark);
+            border-radius: 50%;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        /* Part 2 cue card */
+        .cue-card {
+            border: 2px solid var(--ink);
+            border-radius: 8px;
+            padding: 20px 22px;
+            background: #fdfdfc;
+        }
+
+        .cue-card .task {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin: 0 0 14px;
+        }
+
+        .cue-card .say-label {
+            margin: 0 0 6px;
+            font-weight: 600;
+        }
+
+        .cue-card ul {
+            margin: 0 0 14px;
+            padding-left: 22px;
+        }
+
+        .cue-card li { margin-bottom: 4px; }
+
+        .cue-card .explain {
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .cue-card .timing {
+            margin: 16px 0 0;
+            padding-top: 12px;
+            border-top: 1px dashed #ccd2d8;
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .section-label {
+            margin: 24px 0 6px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .placeholder, .loading {
+            color: var(--muted);
+            text-align: center;
+            padding: 60px 20px;
+            margin: 0;
+        }
+
+        .loading { font-style: italic; }
+
+        .error {
+            color: #b03a2e;
+            background: #fdf0ee;
+            border: 1px solid #f5c6c0;
+            border-radius: 6px;
+            padding: 14px 16px;
+            margin: 0;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 24px;
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+
+        .quota-note {
+            max-width: 48ch;
+            margin: 0 auto 14px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--line);
+            line-height: 1.5;
         }
     </style>
 </head>
 <body>
     <h1>IELTS Speaking Questions Generator</h1>
+    <p class="subtitle">Practice material for Parts 1, 2 and 3, generated on demand.</p>
+
     <div id="controls">
-        <label for="part-selector">Select：</label>
-        <select id="part-selector">
-            <option value="part1">Part 1 (general questions)</option>
-            <option value="part2">Part 2 (cue card)</option>
-            <option value="part3">Part 3 (deep discussion)</option>
-        </select>
-        <button id="generate-button">Generate Questions</button>
+        <div class="field">
+            <label for="part-selector">Part</label>
+            <select id="part-selector">
+                <option value="part1">Part 1 — Introduction &amp; interview</option>
+                <option value="part2">Part 2 — Cue card</option>
+                <option value="part3">Part 3 — Two-way discussion</option>
+            </select>
+        </div>
+        <div class="field">
+            <label for="topic-selector">Topic</label>
+            <select id="topic-selector">
+                <option value="">🎲 Surprise me</option>
+            </select>
+        </div>
+        <button id="generate-button" type="button">Generate</button>
     </div>
+
     <div id="question-container">
-        <p id="question">Please select a part and click the "Generate Questions" buttom.</p>
+        <p class="placeholder">Pick a part and a topic, then hit Generate.</p>
     </div>
-    <div style="text-align: center; margin-top: 20px; padding: 10px; color: #666; font-size: 14px;">
+
+    <footer>
+        <p class="quota-note">
+            Running on the Gemini API free tier: 20 generations per day,
+            shared by everyone using the site. If generating stops working,
+            the day's allowance is gone — it resets tomorrow.
+        </p>
+        Simulated practice material — not real IELTS questions.<br>
         Copyright © 2025 silviaiaia
-    </div>
+    </footer>
+
     <script src="script.js"></script>
 </body>
 </html>
-
-
