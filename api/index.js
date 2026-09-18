@@ -45,9 +45,27 @@ async function generateWithRetry(request, attempts = 3) {
   }
 }
 
+/**
+ * The daily free-tier allowance is shared by everyone who loads the site, so
+ * a wide-open `origin: "*"` let any other page spend it from their visitors'
+ * browsers. Restrict it to this project's own deployments — production, the
+ * per-commit preview URLs, and localhost.
+ *
+ * This is not a security boundary: CORS is enforced by browsers, so curl is
+ * unaffected. Real abuse protection would need a shared rate-limit store,
+ * which a single serverless function cannot provide on its own.
+ */
+const ALLOWED_ORIGIN =
+  /^https:\/\/ielts-speaking-generator[a-z0-9-]*\.vercel\.app$/;
+const LOCAL_ORIGIN = /^http:\/\/localhost(:\d+)?$/;
+
 app.use(
   cors({
-    origin: "*",
+    origin: (origin, callback) => {
+      // No Origin header at all: curl, or a same-origin navigation.
+      if (!origin) return callback(null, true);
+      callback(null, ALLOWED_ORIGIN.test(origin) || LOCAL_ORIGIN.test(origin));
+    },
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type"],
   }),

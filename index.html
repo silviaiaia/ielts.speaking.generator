@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IELTS Speaking Questions Generator</title>
+    <meta name="description" content="Generate IELTS Speaking practice questions for Parts 1, 2 and 3 across 28 topics — cue cards, follow-ups and discussion questions.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127908;</text></svg>">
     <style>
         :root {
             --accent: #3498db;
@@ -277,7 +279,10 @@
         <button id="generate-button" type="button">Generate</button>
     </div>
 
-    <div id="question-container">
+    <!-- aria-live so the generated set is announced: the panel is replaced
+         in place, which a screen reader would otherwise pass over silently. -->
+    <div id="question-container" role="region" aria-label="Generated questions"
+         aria-live="polite">
         <p class="placeholder">Pick a part and a topic, then hit Generate.</p>
     </div>
 
