@@ -104,16 +104,29 @@ app.post("/api/generate_question", async (req, res) => {
         // High temperature widens the pool of phrasings; the topic and angle
         // injected above are what keep the output on task despite it.
         temperature: 1.0,
-        // Writing four exam questions to a fixed schema is not a reasoning
-        // task, and on a thinking model the thought tokens are billed against
-        // maxOutputTokens — left on the default they truncated the JSON
-        // mid-string. Low thinking plus headroom keeps responses complete.
-        thinkingLevel: ThinkingLevel.LOW,
-        maxOutputTokens: 2048,
+        // Writing exam questions to a fixed schema is not a reasoning task,
+        // and on a thinking model the thought tokens are billed against
+        // maxOutputTokens. LOW with a 2048 ceiling still truncated the JSON
+        // (finishReason=MAX_TOKENS), so thinking is turned down as far as it
+        // goes and the ceiling is raised well past what the answer needs.
+        // The ceiling is a cap, not a reservation — unused tokens cost
+        // nothing — so it is set generously rather than tuned.
+        thinkingLevel: ThinkingLevel.MINIMAL,
+        maxOutputTokens: 8192,
         responseMimeType: "application/json",
         responseSchema: config.schema,
       },
     });
+
+    // Thought tokens are invisible in the response body but count against
+    // the output ceiling, so log the split — it is the only way to tell a
+    // truncation caused by thinking from one caused by a long answer.
+    const usage = result.usageMetadata || {};
+    console.log(
+      `tokens: thoughts=${usage.thoughtsTokenCount ?? 0} ` +
+        `output=${usage.candidatesTokenCount ?? 0} ` +
+        `total=${usage.totalTokenCount ?? 0}`,
+    );
 
     let payload;
     try {
