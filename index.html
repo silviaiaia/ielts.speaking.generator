@@ -244,8 +244,11 @@
         }
 
         .quota-note {
-            max-width: 48ch;
-            margin: 0 auto 14px;
+            /* Full container width rather than a ch-based cap: the font
+               stack resolves differently per platform, so a fixed ch value
+               that fits one sentence on one machine wraps on another. The
+               <br> in the markup is what sets the break. */
+            margin: 0 0 14px;
             padding-bottom: 14px;
             border-bottom: 1px solid var(--line);
             line-height: 1.5;
@@ -281,8 +284,9 @@
     <footer>
         <p class="quota-note">
             Running on the Gemini API free tier: 20 generations per day,
-            shared by everyone using the site. If generating stops working,
-            the day's allowance is gone — it resets tomorrow.
+            shared by everyone using the site.<br>
+            If generating stops working, the day's allowance is gone —
+            it resets tomorrow.
         </p>
         Simulated practice material — not real IELTS questions.<br>
         Copyright © 2025 silviaiaia
