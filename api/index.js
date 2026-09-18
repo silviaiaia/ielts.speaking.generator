@@ -39,7 +39,7 @@ async function generateWithRetry(request, attempts = 3) {
       if (attempt >= attempts || !TRANSIENT_STATUSES.includes(error.status)) {
         throw error;
       }
-      console.warn(`Gemini 回傳 ${error.status}，第 ${attempt} 次重試`);
+      console.warn(`Gemini returned ${error.status}; retry ${attempt}`);
       await sleep(500 * 2 ** (attempt - 1));
     }
   }
@@ -70,7 +70,9 @@ app.post("/api/generate_question", async (req, res) => {
 
   const config = PARTS[part];
   if (!config) {
-    return res.status(400).json({ error: "無效的題型選擇" });
+    return res
+      .status(400)
+      .json({ error: "Unknown part. Expected part1, part2 or part3." });
   }
 
   const { topic, angle } = planRequest(part, topicId);
@@ -101,12 +103,12 @@ app.post("/api/generate_question", async (req, res) => {
     } catch (parseError) {
       const finishReason = result.candidates?.[0]?.finishReason;
       console.error(
-        `模型回傳非合法 JSON (finishReason=${finishReason}):`,
+        `Model returned invalid JSON (finishReason=${finishReason}):`,
         result.text,
       );
       return res
         .status(502)
-        .json({ error: "模型回傳格式錯誤，請再試一次" });
+        .json({ error: "The model returned malformed output. Please try again." });
     }
 
     res.status(200).json({
@@ -119,7 +121,7 @@ app.post("/api/generate_question", async (req, res) => {
   } catch (error) {
     // Gemini's own error text carries quota figures and internal URLs, so it
     // goes to the log; the caller gets something it can act on.
-    console.error("生成問題時出錯:", error);
+    console.error("Question generation failed:", error);
 
     if (error.status === 429) {
       // The free tier meters both per minute and per day, and the two need
@@ -128,12 +130,14 @@ app.post("/api/generate_question", async (req, res) => {
       const dailyQuota = /PerDay/i.test(error.message || "");
       return res.status(429).json({
         error: dailyQuota
-          ? "今日的免費額度已用完，請明天再試"
-          : "目前請求量已達上限，請稍等約 30 秒再試一次",
+          ? "Today's free allowance is used up. It resets tomorrow."
+          : "Too many requests right now. Try again in about 30 seconds.",
       });
     }
 
-    res.status(502).json({ error: "生成問題時出錯，請稍後再試" });
+    res
+      .status(502)
+      .json({ error: "Could not generate questions. Please try again." });
   }
 });
 
@@ -152,7 +156,7 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 app.all("/api/*", (req, res) => {
-  res.status(404).json({ error: "找不到此 API 端點", path: req.path });
+  res.status(404).json({ error: "No such API endpoint", path: req.path });
 });
 
 if (process.env.NODE_ENV !== "production") {

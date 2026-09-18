@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         })
         .catch(function (error) {
-            console.warn('無法載入主題清單，保留隨機模式:', error);
+            console.warn('Could not load the topic list; staying on random.', error);
         });
 
     /* ---------- renderers, one per part shape ---------- */
@@ -133,12 +133,12 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(function (data) {
                 const render = RENDERERS[data.part];
                 if (!render) {
-                    throw new Error('未知的題型：' + data.part);
+                    throw new Error('Unexpected part in response: ' + data.part);
                 }
                 show(render(data));
             })
             .catch(function (error) {
-                console.error('產生題目失敗:', error);
+                console.error('Generation failed:', error);
                 showMessage('error', error.message);
             })
             .finally(function () {
