@@ -1,13 +1,71 @@
 const express = require("express");
 const cors = require("cors");
+const { GoogleGenAI, ThinkingLevel } = require("@google/genai");
 require("dotenv").config();
+
+const { TOPICS, PARTS, SYSTEM_INSTRUCTION, planRequest } = require("./prompts");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const MODEL = process.env.GEMINI_MODEL || "gemini-3.6-flash";
+
+// Instantiated once per serverless container rather than per request, so a
+// warm invocation reuses the client.
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Gemini's flash models return 503 UNAVAILABLE under load often enough that a
+ * single attempt fails several times an hour, and those clear in well under a
+ * second — so retry them with a short backoff.
+ *
+ * 429 is deliberately NOT retried. The free tier allows 5 requests/minute and
+ * the quota error asks for a ~20s wait, which is longer than the serverless
+ * function's own timeout; retrying inside the request would time out anyway
+ * and burn another unit of quota on the way. Surface it to the caller instead.
+ *
+ * The attempt count is capped at 3 for the same reason: every retry is itself
+ * a metered request, so a run of 503s would otherwise spend most of a minute's
+ * free-tier quota and turn a recoverable outage into a 429 for the next user.
+ */
+const TRANSIENT_STATUSES = [500, 502, 503, 504];
+
+async function generateWithRetry(request, attempts = 3) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await ai.models.generateContent(request);
+    } catch (error) {
+      if (attempt >= attempts || !TRANSIENT_STATUSES.includes(error.status)) {
+        throw error;
+      }
+      console.warn(`Gemini returned ${error.status}; retry ${attempt}`);
+      await sleep(500 * 2 ** (attempt - 1));
+    }
+  }
+}
+
+/**
+ * The daily free-tier allowance is shared by everyone who loads the site, so
+ * a wide-open `origin: "*"` let any other page spend it from their visitors'
+ * browsers. Restrict it to this project's own deployments — production, the
+ * per-commit preview URLs, and localhost.
+ *
+ * This is not a security boundary: CORS is enforced by browsers, so curl is
+ * unaffected. Real abuse protection would need a shared rate-limit store,
+ * which a single serverless function cannot provide on its own.
+ */
+const ALLOWED_ORIGIN =
+  /^https:\/\/ielts-speaking-generator[a-z0-9-]*\.vercel\.app$/;
+const LOCAL_ORIGIN = /^http:\/\/localhost(:\d+)?$/;
 
 app.use(
   cors({
-    origin: "*",
+    origin: (origin, callback) => {
+      // No Origin header at all: curl, or a same-origin navigation.
+      if (!origin) return callback(null, true);
+      callback(null, ALLOWED_ORIGIN.test(origin) || LOCAL_ORIGIN.test(origin));
+    },
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type"],
   }),
@@ -16,49 +74,122 @@ app.use(
 app.use(express.json());
 
 app.get("/api/health", (req, res) => {
-  res.status(200).json({ status: "healthy" });
+  res.status(200).json({ status: "healthy", model: MODEL });
+});
+
+// The front end builds its topic picker from this, so the catalogue lives in
+// exactly one place.
+app.get("/api/topics", (req, res) => {
+  res.status(200).json({ topics: TOPICS });
 });
 
 app.post("/api/generate_question", async (req, res) => {
+  const { part, topic: topicId } = req.body || {};
+
+  const config = PARTS[part];
+  if (!config) {
+    return res
+      .status(400)
+      .json({ error: "Unknown part. Expected part1, part2 or part3." });
+  }
+
+  const { topic, angle } = planRequest(part, topicId);
+
   try {
-    const { part } = req.body;
-
-    if (!part || !["part1", "part2", "part3"].includes(part)) {
-      return res.status(400).json({ error: "無效的題型選擇" });
-    }
-
-    let prompt = "";
-
-    if (part === "part1") {
-      prompt = `Generate a set of IELTS Speaking Part 1 questions. Include 1 main question and 2–3 follow-up questions. All in English. 要求：...`;
-    } else if (part === "part2") {
-      prompt = `Generate one IELTS Speaking Part 2 task card with a topic and bullet point prompts. Then add 2–3 follow-up questions that an examiner might ask after the candidate's response. 要求：...`;
-    } else {
-      // part3
-      prompt = `Generate a set of IELTS Speaking Part 3 questions. Start with a main discussion question and add 2–3 related follow-up questions. All in English. 要求：...`;
-    }
-
-    const { GoogleGenAI } = require("@google/genai");
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-    const result = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
-      contents: prompt,
+    const result = await generateWithRetry({
+      model: MODEL,
+      contents: config.buildPrompt({ topic: topic.label, angle }),
+      config: {
+        systemInstruction: SYSTEM_INSTRUCTION,
+        // High temperature widens the pool of phrasings; the topic and angle
+        // injected above are what keep the output on task despite it.
+        temperature: 1.0,
+        // Writing exam questions to a fixed schema is not a reasoning task,
+        // and on a thinking model the thought tokens are billed against
+        // maxOutputTokens. LOW with a 2048 ceiling still truncated the JSON
+        // (finishReason=MAX_TOKENS), so thinking is turned down as far as it
+        // goes and the ceiling is raised well past what the answer needs.
+        // The ceiling is a cap, not a reservation — unused tokens cost
+        // nothing — so it is set generously rather than tuned.
+        thinkingLevel: ThinkingLevel.MINIMAL,
+        maxOutputTokens: 8192,
+        responseMimeType: "application/json",
+        responseSchema: config.schema,
+      },
     });
-    const text = result.text;
 
-    res.status(200).json({ question: text });
+    // Thought tokens are invisible in the response body but count against
+    // the output ceiling, so log the split — it is the only way to tell a
+    // truncation caused by thinking from one caused by a long answer.
+    const usage = result.usageMetadata || {};
+    console.log(
+      `tokens: thoughts=${usage.thoughtsTokenCount ?? 0} ` +
+        `output=${usage.candidatesTokenCount ?? 0} ` +
+        `total=${usage.totalTokenCount ?? 0}`,
+    );
+
+    let payload;
+    try {
+      payload = JSON.parse(result.text);
+    } catch (parseError) {
+      const finishReason = result.candidates?.[0]?.finishReason;
+      console.error(
+        `Model returned invalid JSON (finishReason=${finishReason}):`,
+        result.text,
+      );
+      return res
+        .status(502)
+        .json({
+          error: "The model returned malformed output. Please try again.",
+        });
+    }
+
+    res.status(200).json({
+      part,
+      partLabel: config.label,
+      topic: topic.label,
+      topicId: topic.id,
+      ...payload,
+    });
   } catch (error) {
-    console.error("生成問題時出錯:", error);
-    res.status(500).json({
-      error:
-        "生成問題時出錯，請稍後再試" +
-        (error.message ? ": " + error.message : ""),
-    });
+    // Gemini's own error text carries quota figures and internal URLs, so it
+    // goes to the log; the caller gets something it can act on.
+    console.error("Question generation failed:", error);
+
+    if (error.status === 429) {
+      // The free tier meters both per minute and per day, and the two need
+      // very different advice — "try again in 30 seconds" is actively
+      // misleading once the daily allowance is gone.
+      const dailyQuota = /PerDay/i.test(error.message || "");
+      return res.status(429).json({
+        error: dailyQuota
+          ? "Today's free allowance is used up. Try tomorrow."
+          : "Too many requests right now. Try again in about 30 seconds.",
+      });
+    }
+
+    res
+      .status(502)
+      .json({ error: "Could not generate questions. Please try again." });
   }
 });
 
+// In production Vercel serves the two static files straight from the repo
+// root (see vercel.json) and never reaches this function for them. Locally
+// there is no such layer, so `npm run dev` serves them here — named
+// explicitly rather than via express.static, so nothing else in the repo
+// root (.env included) can be requested.
+if (process.env.NODE_ENV !== "production") {
+  const path = require("path");
+  const root = path.join(__dirname, "..");
+  app.get("/", (req, res) => res.sendFile(path.join(root, "index.html")));
+  app.get("/script.js", (req, res) =>
+    res.sendFile(path.join(root, "script.js")),
+  );
+}
+
 app.all("/api/*", (req, res) => {
-  res.status(404).json({ error: "找不到此 API 端點", path: req.path });
+  res.status(404).json({ error: "No such API endpoint", path: req.path });
 });
 
 if (process.env.NODE_ENV !== "production") {
